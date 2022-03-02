@@ -116,6 +116,8 @@ export class AVector extends IVector {
   }
   /** @returns {vec is AVector} */
   static isAVector(vec) { vec instanceof AVector }
+  static zero() { return new AVector(0) }
+  static one() { return new AVector(1) }
 }
 //#endregion
 
@@ -164,6 +166,8 @@ export class Vector extends AVector {
   normalize() { return sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2) }
   /** @returns {vec is Vector} */
   static isVector(vec) { return vec instanceof Vector }
+  static zero() { return new Vector(0) }
+  static one() { return new Vector(1) }
 }
 export class Vector2 extends Vector {
   constructor(x, y) { super(x, y, 0, 0) }
@@ -174,6 +178,8 @@ export class Vector2 extends Vector {
   set y(y) { this[AXIS][Y] = y || 0 }
   set z(z) { }
   len() { return AVector.len2D(this) }
+  static zero() { return new Vector2(0) }
+  static one() { return new Vector2(1) }
 }
 export class Vector3 extends Vector {
   constructor(x, y) { super(x, y, 0, 0) }
@@ -184,6 +190,8 @@ export class Vector3 extends Vector {
   set y(y) { this[AXIS][Y] = y || 0 }
   set z(z) { this[AXIS][Z] = z || 0 }
   len() { return AVector.len3D(this) }
+  static zero() { return new Vector3(0) }
+  static one() { return new Vector3(1) }
 }
 //#endregion
 
