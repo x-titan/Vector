@@ -59,8 +59,10 @@ export class AVector extends IVector {
   set(x, y, z) { throw notImp("set()") }
   setVec(vec) { throw notImp("setVec()") }
   calc(operator, vec) { throw notImp("calc()") }
-  negative() { throw notImp("negative()") }
-  normalize() { throw notImp("normalize()") }
+  neg() { throw notImp("negative()") }
+  negative() { return this.neg() }
+  norm() { throw notImp("normalize()") }
+  normalize() { return this.norm() }
   clear() { throw notImp("clear()") }
   dist(x, y, z) {
     return sqrt(
@@ -95,12 +97,14 @@ export class AVector extends IVector {
   }
   /** @returns {IVector} */
   static normalize2D(vec) {
-    const len = vec.len2D()
+    let len = AVector.len2D(vec)
+    if (len === 0) len = 1
     return new vec.constructor(vec.x / len, vec.y / len, 0)
   }
   /** @returns {IVector} */
   static normalize3D(vec) {
-    const len = vec.len3D()
+    let len = AVector.len3D(vec)
+    if (len === 0) len = 1
     return new vec
       .constructor(
         vec.x / len,
@@ -160,7 +164,7 @@ export class Vector extends AVector {
     this.z = z
     return this
   }
-  negative() { return this.mul(-1) }
+  neg() { return this.mul(-1) }
   setVec(vec) {
     this.x = vec.x
     this.y = vec.y
@@ -202,7 +206,14 @@ export class Vector extends AVector {
     return this
   }
   clear() { return this.set(0) }
-  normalize() { return sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2) }
+  norm() {
+    let len = this.len()
+    if (len === 0) len = 1
+    this.x /= len
+    this.y /= len
+    this.z /= len
+    return this
+  }
   /** @returns {vec is Vector} */
   static isVector(vec) { return vec instanceof Vector }
   static zero() { return new Vector(0) }
@@ -216,7 +227,7 @@ export class Vector2 extends Vector {
   set x(x) { this[AXIS][X] = x || 0 }
   set y(y) { this[AXIS][Y] = y || 0 }
   set z(z) { }
-  len() { return AVector.len2D(this) }
+  len() { return sqrt(this.x ** 2 + this.y ** 2) }
   static zero() { return new Vector2(0) }
   static one() { return new Vector2(1) }
 }
@@ -228,7 +239,7 @@ export class Vector3 extends Vector {
   set x(x) { this[AXIS][X] = x || 0 }
   set y(y) { this[AXIS][Y] = y || 0 }
   set z(z) { this[AXIS][Z] = z || 0 }
-  len() { return AVector.len3D(this) }
+  len() { return sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2) }
   static zero() { return new Vector3(0) }
   static one() { return new Vector3(1) }
 }
@@ -243,7 +254,7 @@ export const VECTOR_CONSTANTS = freeze({
   FORWARD: new AVector(0, -1, 0),
   BACK: new AVector(0, 1, 0),
   TOP: new AVector(0, 0, -1),
-  BOTTOM: new AVector(0, 0, -1)
+  BOTTOM: new AVector(0, 0, 1)
 })
 //#endregion
 
