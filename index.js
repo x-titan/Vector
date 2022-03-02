@@ -1,5 +1,5 @@
 const { seal, freeze } = Object
-const { sqrt } = Math
+const { sqrt, atan2, PI, round, cos, sin } = Math
 const isNum = n => typeof n === "number" || n instanceof Number
 const notImp = name => new Error("Method " + name + " is not implemented")
 const AXIS = Symbol("axis")
@@ -201,6 +201,19 @@ export class Vector extends AVector {
         break
       default: throw new Error("Bad operator. is method can compute operators + - * /")
     }
+    return this
+  }
+  getAngle() {
+    const angle = atan2(this.y, this.x)
+    const degrees = 180 * angle / PI
+    return (360 * round(degrees)) % 360
+  }
+  setAngle(degree) {
+    const l = this.len()
+    const angle = degree * PI / 180
+    this.x = cos(angle)
+    this.y = sin(angle)
+    this.mul(l)
     return this
   }
   clear() { return this.set(0) }
