@@ -1,7 +1,6 @@
 const { seal, freeze } = Object
 const { sqrt } = Math
 const isNum = n => typeof n === "number" || n instanceof Number
-
 const notImp = name => new Error("Method " + name + " is not implemented")
 const AXIS = Symbol("axis")
 const X = 0
@@ -23,10 +22,16 @@ export class IVector {
    * @param {*} vec
    * @returns {vec is {x:number,y:number,z:?number}}
    */
-  static isVectorLike(vec) {
+  static is2DVectorLike(vec) {
     const t = typeof vec
     if (t === "object" || t === "function")
-      if (isNum(vec?.x) && isNum(vec?.y)) return true
+      return isNum(vec?.x) && isNum(vec?.y)
+    return false
+  }
+  static is3DVectorLike(vec) {
+    const t = typeof vec
+    if (t === "object" || t === "function")
+      return isNum(vec?.x) && isNum(vec?.y) && isNum(vec?.z)
     return false
   }
   static zero() { return new IVector(0) }
@@ -160,6 +165,40 @@ export class Vector extends AVector {
     this.x = vec.x
     this.y = vec.y
     this.z = vec.z
+    return this
+  }
+  addVec(vec) {
+    this.x += vec.x
+    this.y += vec.y
+    this.z += vec.z
+    return this
+  }
+  calc(operator = "+", vec) {
+    if ((operator = operator.trim()).length !== 1) return this
+    if (!IVector.is2DVectorLike(vec)) return this
+    switch (operator.trim()) {
+      case "+":
+        this.x += vec.x
+        this.y += vec.y
+        this.z += (vec.z || 0)
+        break
+      case "-":
+        this.x -= vec.x
+        this.y -= vec.y
+        this.z -= (vec.z || 0)
+        break
+      case "*":
+        this.x *= vec.x
+        this.y *= vec.y
+        this.z *= (vec.z || 0)
+        break
+      case "/":
+        this.x /= vec.x
+        this.y /= vec.y
+        this.z /= (vec.z || 0)
+        break
+      default: throw new Error("Bad operator. is method can compute operators + - * /")
+    }
     return this
   }
   clear() { return this.set(0) }
