@@ -77,9 +77,7 @@ export class AVector extends IVector {
       (this.z - vec.z) ** 2)
   }
   /** @returns {IVector} */
-  clone() {
-    return new this.constructor(this.x, this.y, this.z)
-  }
+  clone() { return new this.constructor(this.x, this.y, this.z) }
   len() { return AVector.len4D(this) }
   copy() { this.clone() }
   equals(vec) {
