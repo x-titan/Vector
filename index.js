@@ -102,15 +102,6 @@ export class AVector extends IVector {
         vec.y / len,
         vec.z / len)
   }
-  /** @returns {IVector} */
-  static normalize4D(vec) {
-    const len = vec.len4D()
-    return new vec
-      .constructor(
-        vec.x / len,
-        vec.y / len,
-        vec.z / len)
-  }
   static len2D(vec) {
     return sqrt(vec.x ** 2 + vec.y ** 2)
   }
