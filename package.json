@@ -1,0 +1,19 @@
+{
+  "name": "titan_vector",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/x-titan/vector.git"
+  },
+  "author": "noname_titan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/x-titan/vector/issues"
+  },
+  "homepage": "https://github.com/x-titan/vector#readme"
+}
