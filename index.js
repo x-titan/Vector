@@ -47,16 +47,20 @@ export class IVector {
 }
 export class AVector extends IVector {
   constructor(x = 0, y = x, z = x) { super(x, y, z) }
+  //#region Setter Getter
   get x() { return this[AXIS][X] }
   get y() { return this[AXIS][Y] }
   get z() { return this[AXIS][Z] }
   set x(x) { throw notImp("set x()") }
   set y(y) { throw notImp("set y()") }
   set z(z) { throw notImp("set z()") }
+  //#endregion
+  //#region Public Methods
   add(x, y, z) { throw notImp("add()") }
   div(x, y, z) { throw notImp("div()") }
   mul(x, y, z) { throw notImp("mul()") }
   set(x, y, z) { throw notImp("set()") }
+  addVec(vec) { throw notImp("addVec()") }
   setVec(vec) { throw notImp("setVec()") }
   calc(operator, vec) { throw notImp("calc()") }
   neg() { throw notImp("negative()") }
@@ -86,6 +90,8 @@ export class AVector extends IVector {
       this.z === vec.z
   }
   toVector() { return new Vector(this.x, this.y, this.z) }
+  //#endregion
+  //#region Static Methods
   static assign(vec, vec_) {
     return new vec
       .constructor(
@@ -125,6 +131,7 @@ export class AVector extends IVector {
   static isAVector(vec) { vec instanceof AVector }
   static zero() { return new AVector(0) }
   static one() { return new AVector(1) }
+  //#endregion
 }
 //#endregion
 
