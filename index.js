@@ -97,6 +97,14 @@ export class AVector extends IVector {
   toVector() { return new Vector(this.x, this.y, this.z) }
   //#endregion
   //#region Static Methods
+  static direction(vec, vec_) {
+    const d = vec.distance(vec_)
+    return new vec
+      .constructor(
+        vec_.x - vec.x / d,
+        vec_.y - vec.y / d,
+        vec_.z - vec.z / d)
+  }
   static assign(vec, vec_) {
     return new vec
       .constructor(
@@ -108,7 +116,11 @@ export class AVector extends IVector {
   static normalize2D(vec) {
     let len = AVector.len2D(vec)
     if (len === 0) len = 1
-    return new vec.constructor(vec.x / len, vec.y / len, 0)
+    return new vec
+      .constructor(
+        vec.x / len,
+        vec.y / len,
+        0)
   }
   /** @returns {IVector} */
   static normalize3D(vec) {
@@ -204,7 +216,7 @@ export class Vector extends AVector {
    */
   calc(operation, vec) {
     if (!IVector.is2DVectorLike(vec)) return this
-    if (OPERATIONS.has(operation = operation.trim())) 
+    if (OPERATIONS.has(operation = operation.trim()))
       this[operation](vec.x, vec.y, vec.z)
     return this
   }
