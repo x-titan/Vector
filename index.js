@@ -6,6 +6,26 @@ const AXIS = Symbol("axis")
 const X = 0
 const Y = 1
 const Z = 2
+function clamp(value, min, max) {
+  if (value < min)
+    return min;
+  if (value > max)
+    return max;
+  return value;
+}
+let _seed = 0
+function random(min, max) {
+  min = (typeof min !== "undefined") ? min : 0;
+  max = (typeof max !== "undefined") ? max : 1;
+  return min + _seededRandom() * (max - min);
+};
+function _seededRandom() {
+  _seed = (_seed * 9301 + 49297) % 233280;
+  return _seed / 233280;
+};
+function sign(value) {
+  return value < 0 ? -1 : 1;
+};
 /**
  * @type {"add"|"sub"|"mul"|"div"|"set"}
  */
@@ -143,6 +163,19 @@ export class AVector extends IVector {
   }
   static dot3D(vec, vec_) {
     return vec.x * vec_.x + vec.y * vec_.y + vec.z * vec_.z
+  }
+  static cross2D(vec, vec_) {
+    return (vec.x * vec_.y) - (vec.y * vec_.x)
+  }
+  static cross2D_3(vec1, vec2, vec3) {
+    return (vec2.x - vec1.x) * (vec3.y - vec1.y) - (vec2.y - vec1.y) * (vec3.x - vec1.x)
+  }
+  static cross3D(vec, vec_, out) {
+    if (!out) out = new vec.constructor()
+    return out.set(
+      vec_.z * vec.y - vec.z * vec_.y,
+      vec_.x * vec.z - vec.x * vec_.z,
+      vec_.y * vec.x - vec.y * vec_.x)
   }
   /** @returns {vec is AVector} */
   static isAVector(vec) { vec instanceof AVector }
