@@ -162,9 +162,9 @@ export class Vector extends AVector {
   set x(x) { this[AXIS][X] = x || 0 }
   set y(y) { this[AXIS][Y] = y || 0 }
   set z(z) { this[AXIS][Z] = z || 0 }
-  len() { return AVector.len3D(this) }
   //#endregion
   //#region Public Methods
+  //#region Math
   add(x = 0, y = x, z = x) {
     this.x += x
     this.y += y
@@ -195,7 +195,8 @@ export class Vector extends AVector {
     this.z = z
     return this
   }
-  neg() { return this.mul(-1) }
+  //#endregion
+  //#region Math with Vec
   setVec(vec) {
     this.x = vec.x
     this.y = vec.y
@@ -220,6 +221,8 @@ export class Vector extends AVector {
       this[operation](vec.x, vec.y, vec.z)
     return this
   }
+  //#endregion
+  //#region Angle
   getAngle() {
     const angle = atan2(this.y, this.x)
     const degrees = 180 * angle / PI
@@ -233,7 +236,7 @@ export class Vector extends AVector {
     this.mul(l)
     return this
   }
-  clear() { return this.set(0) }
+  //#endregion
   norm() {
     let len = this.len()
     if (len === 0) len = 1
@@ -242,6 +245,9 @@ export class Vector extends AVector {
     this.z /= len
     return this
   }
+  len() { return AVector.len3D(this) }
+  neg() { return this.mul(-1) }
+  clear() { return this.set(0) }
   //#endregion
   //#region Static Methods
   /** @returns {vec is Vector} */
