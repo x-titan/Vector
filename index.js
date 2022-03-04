@@ -6,6 +6,10 @@ const AXIS = Symbol("axis")
 const X = 0
 const Y = 1
 const Z = 2
+/**
+ * @type {"add"|"sub"|"mul"|"div"|"set"}
+ */
+const OPERATIONS = new Set(["add", "sub", "mul", "div", "set"])
 
 //#region IVector and AVector
 export class IVector {
@@ -57,12 +61,13 @@ export class AVector extends IVector {
   //#endregion
   //#region Public Methods
   add(x, y, z) { throw notImp("add()") }
+  sub(x, y, z) { throw notImp("sub()") }
   div(x, y, z) { throw notImp("div()") }
   mul(x, y, z) { throw notImp("mul()") }
   set(x, y, z) { throw notImp("set()") }
   addVec(vec) { throw notImp("addVec()") }
   setVec(vec) { throw notImp("setVec()") }
-  calc(operator, vec) { throw notImp("calc()") }
+  calc(operation, vec) { throw notImp("calc()") }
   neg() { throw notImp("negative()") }
   negative() { return this.neg() }
   norm() { throw notImp("normalize()") }
@@ -138,6 +143,7 @@ export class AVector extends IVector {
 //#region Vector
 export class Vector extends AVector {
   constructor(x, y, z) { super(x, y, z) }
+  //#region Setter Getter
   get x() { return this[AXIS][X] }
   get y() { return this[AXIS][Y] }
   get z() { return this[AXIS][Z] }
@@ -145,7 +151,15 @@ export class Vector extends AVector {
   set y(y) { this[AXIS][Y] = y || 0 }
   set z(z) { this[AXIS][Z] = z || 0 }
   len() { return AVector.len3D(this) }
+  //#endregion
+  //#region Public Methods
   add(x = 0, y = x, z = x) {
+    this.x += x
+    this.y += y
+    this.z += z
+    return this
+  }
+  sub(x = 0, y = x, z = x) {
     this.x += x
     this.y += y
     this.z += z
@@ -182,32 +196,16 @@ export class Vector extends AVector {
     this.z += vec.z
     return this
   }
-  calc(operator = "+", vec) {
-    if ((operator = operator.trim()).length !== 1) return this
+  /**
+   * 
+   * @param {OPERATIONS} operation 
+   * @param {IVector | {x:number,y:number,z:?number}} vec 
+   * @returns 
+   */
+  calc(operation, vec) {
     if (!IVector.is2DVectorLike(vec)) return this
-    switch (operator.trim()) {
-      case "+":
-        this.x += vec.x
-        this.y += vec.y
-        this.z += (vec.z || 0)
-        break
-      case "-":
-        this.x -= vec.x
-        this.y -= vec.y
-        this.z -= (vec.z || 0)
-        break
-      case "*":
-        this.x *= vec.x
-        this.y *= vec.y
-        this.z *= (vec.z || 0)
-        break
-      case "/":
-        this.x /= vec.x
-        this.y /= vec.y
-        this.z /= (vec.z || 0)
-        break
-      default: throw new Error("Bad operator. is method can compute operators + - * /")
-    }
+    if (OPERATIONS.has(operation = operation.trim())) 
+      this[operation](vec.x, vec.y, vec.z)
     return this
   }
   getAngle() {
@@ -232,10 +230,13 @@ export class Vector extends AVector {
     this.z /= len
     return this
   }
+  //#endregion
+  //#region Static Methods
   /** @returns {vec is Vector} */
   static isVector(vec) { return vec instanceof Vector }
   static zero() { return new Vector(0) }
   static one() { return new Vector(1) }
+  //#endregion
 }
 export class Vector2 extends Vector {
   constructor(x, y) { super(x, y, 0, 0) }
