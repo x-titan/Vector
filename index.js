@@ -1,3 +1,4 @@
+'use strict';
 const { seal, freeze } = Object
 const { sqrt, atan2, PI, round, cos, sin } = Math
 const isNum = n => typeof n === "number" || n instanceof Number
@@ -6,31 +7,9 @@ const AXIS = Symbol("axis")
 const X = 0
 const Y = 1
 const Z = 2
-function clamp(value, min, max) {
-  if (value < min)
-    return min;
-  if (value > max)
-    return max;
-  return value;
-}
-let _seed = 0
-function random(min, max) {
-  min = (typeof min !== "undefined") ? min : 0;
-  max = (typeof max !== "undefined") ? max : 1;
-  return min + _seededRandom() * (max - min);
-};
-function _seededRandom() {
-  _seed = (_seed * 9301 + 49297) % 233280;
-  return _seed / 233280;
-};
-function sign(value) {
-  return value < 0 ? -1 : 1;
-};
-/**
- * @type {"add"|"sub"|"mul"|"div"|"set"}
- */
+/** @type {"add"|"sub"|"mul"|"div"|"set"} */
 const OPERATIONS = new Set(["add", "sub", "mul", "div", "set"])
-
+const { toStringTag, iterator, hasInstance, toPrimitive } = Symbol
 //#region IVector and AVector
 export class IVector {
   constructor(x = 0, y = x, z = x) {
@@ -42,6 +21,26 @@ export class IVector {
   get x() { return this[AXIS][X] }
   get y() { return this[AXIS][Y] }
   get z() { return this[AXIS][Z] }
+  /** @returns {IVector} */
+  clone() { return new this.constructor(this.x, this.y, this.z) }
+  copy() { return this.clone() }
+  toJSON() { return { x: this.x, y: this.y, z: this.z } }
+  toArray() { return [this.x, this.y, this.z] }
+  toString() {
+    return "[" + this[toStringTag] + " " +
+      this.x + "," + this.y + "," + this.z + "]"
+  }
+  [toStringTag] = this.constructor.name;
+  [toPrimitive](hint) {
+    if (hint === "number") return this.x
+    if (hint === "string") return this.toString()
+    if (hint === "default") return this.toString()
+  }
+  [iterator] = function* () {
+    yield this.x
+    yield this.y
+    yield this.z
+  }
   /**
    * @param {*} vec
    * @returns {vec is {x:number,y:number,z:?number}}
@@ -49,25 +48,23 @@ export class IVector {
   static is2DVectorLike(vec) {
     const t = typeof vec
     if (t === "object" || t === "function")
-      return isNum(vec?.x) && isNum(vec?.y)
+      return isNum(vec.x) && isNum(vec.y)
     return false
   }
   static is3DVectorLike(vec) {
     const t = typeof vec
     if (t === "object" || t === "function")
-      return isNum(vec?.x) && isNum(vec?.y) && isNum(vec?.z)
+      return isNum(vec.x) && isNum(vec.y) && isNum(vec.z)
     return false
   }
-  static zero() { return new IVector(0) }
-  static one() { return new IVector(1) }
-  toJSON() { return { x: this.x, y: this.y, z: this.z } }
-  toArray() { return [this.x, this.y, this.z] }
-  toString() { return "[" + this.constructor.name + " " + this.x + "," + this.y + "," + this.z + "]" }
+  static zero() { return new this(0) }
+  static one() { return new this(1) }
   /**
    * @param {*} vec
    * @returns {vec is IVector}
    */
   static isIVector(vec) { return vec instanceof IVector }
+  static [hasInstance](instance) { return this.isIVector(instance) }
 }
 export class AVector extends IVector {
   constructor(x = 0, y = x, z = x) { super(x, y, z) }
@@ -105,10 +102,7 @@ export class AVector extends IVector {
       (this.y - vec.y) ** 2 +
       (this.z - vec.z) ** 2)
   }
-  /** @returns {IVector} */
-  clone() { return new this.constructor(this.x, this.y, this.z) }
-  len() { return AVector.len4D(this) }
-  copy() { this.clone() }
+  len() { return AVector.len3D(this) }
   equals(vec) {
     return this.x === vec.x &&
       this.y === vec.y &&
@@ -117,37 +111,35 @@ export class AVector extends IVector {
   toVector() { return new Vector(this.x, this.y, this.z) }
   //#endregion
   //#region Static Methods
-  static direction(vec, vec_) {
+  static direction(vec, vec_, out) {
     const d = vec.distance(vec_)
-    return new vec
-      .constructor(
+    return (out ? out.set : (out = vec).clone)
+      .call(out,
         vec_.x - vec.x / d,
         vec_.y - vec.y / d,
         vec_.z - vec.z / d)
   }
-  static assign(vec, vec_) {
-    return new vec
-      .constructor(
+  static assign(vec, vec_, out) {
+    return (out ? out.set : (out = vec).clone)
+      .call(out,
         vec.x + vec_.x,
         vec.y + vec_.y,
         vec.z + vec_.z)
   }
   /** @returns {IVector} */
-  static normalize2D(vec) {
-    let len = AVector.len2D(vec)
-    if (len === 0) len = 1
-    return new vec
-      .constructor(
+  static normalize2D(vec, out) {
+    const len = AVector.len2D(vec) || 1
+    return (out ? out.set : (out = vec).clone)
+      .call(out,
         vec.x / len,
         vec.y / len,
         0)
   }
   /** @returns {IVector} */
-  static normalize3D(vec) {
-    let len = AVector.len3D(vec)
-    if (len === 0) len = 1
-    return new vec
-      .constructor(
+  static normalize3D(vec, out) {
+    const len = AVector.len3D(vec) || 1
+    return (out ? out.set : (out = vec).clone)
+      .call(out,
         vec.x / len,
         vec.y / len,
         vec.z / len)
@@ -168,19 +160,18 @@ export class AVector extends IVector {
     return (vec.x * vec_.y) - (vec.y * vec_.x)
   }
   static cross2D_3(vec1, vec2, vec3) {
-    return (vec2.x - vec1.x) * (vec3.y - vec1.y) - (vec2.y - vec1.y) * (vec3.x - vec1.x)
+    return (vec2.x - vec1.x) * (vec3.y - vec1.y) -
+      (vec2.y - vec1.y) * (vec3.x - vec1.x)
   }
-  static cross3D(vec, vec_, out) {
-    if (!out) out = new vec.constructor()
-    return out.set(
-      vec_.z * vec.y - vec.z * vec_.y,
-      vec_.x * vec.z - vec.x * vec_.z,
-      vec_.y * vec.x - vec.y * vec_.x)
+  static cross3DVec(vec, vec_, out) {
+    return (out ? out.set : (out = vec).clone)
+      .call(out,
+        vec_.z * vec.y - vec.z * vec_.y,
+        vec_.x * vec.z - vec.x * vec_.z,
+        vec_.y * vec.x - vec.y * vec_.x)
   }
   /** @returns {vec is AVector} */
-  static isAVector(vec) { vec instanceof AVector }
-  static zero() { return new AVector(0) }
-  static one() { return new AVector(1) }
+  static isAVector(vec) { return vec instanceof AVector }
   //#endregion
 }
 //#endregion
@@ -285,8 +276,6 @@ export class Vector extends AVector {
   //#region Static Methods
   /** @returns {vec is Vector} */
   static isVector(vec) { return vec instanceof Vector }
-  static zero() { return new Vector(0) }
-  static one() { return new Vector(1) }
   //#endregion
 }
 export class Vector2 extends Vector {
@@ -298,8 +287,6 @@ export class Vector2 extends Vector {
   set y(y) { this[AXIS][Y] = y || 0 }
   set z(z) { }
   len() { return sqrt(this.x ** 2 + this.y ** 2) }
-  static zero() { return new Vector2(0) }
-  static one() { return new Vector2(1) }
 }
 export class Vector3 extends Vector {
   constructor(x, y) { super(x, y, 0, 0) }
@@ -310,8 +297,6 @@ export class Vector3 extends Vector {
   set y(y) { this[AXIS][Y] = y || 0 }
   set z(z) { this[AXIS][Z] = z || 0 }
   len() { return sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2) }
-  static zero() { return new Vector3(0) }
-  static one() { return new Vector3(1) }
 }
 //#endregion
 
@@ -329,9 +314,6 @@ export const VECTOR_CONSTANTS = freeze({
 //#endregion
 
 //#region Export functions
-export function avec(x = 0, y = x, z = x) { return new AVector(x, y, z) }
-avec.one = () => VECTOR_CONSTANTS.ONE
-avec.zero = () => VECTOR_CONSTANTS.ZERO
 export function vec(x = 0, y = x, z = x) { return new Vector(x, y, z) }
 vec.one = Vector.one
 vec.zero = Vector.zero
@@ -342,3 +324,4 @@ export function v3(x = 0, y = x, z = x) { return new Vector3(x, y, z) }
 v3.one = Vector3.one
 v3.zero = Vector3.zero
 //#endregion
+globalThis.AVector = AVector
