@@ -318,4 +318,3 @@ export function v3(x = 0, y = x, z = x) { return new Vector3(x, y, z) }
 v3.one = Vector3.one
 v3.zero = Vector3.zero
 //#endregion
-globalThis.AVector = AVector
