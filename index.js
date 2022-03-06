@@ -9,7 +9,7 @@ const Y = 1
 const Z = 2
 /** @type {"add"|"sub"|"mul"|"div"|"set"} */
 const OPERATIONS = new Set(["add", "sub", "mul", "div", "set"])
-const { toStringTag, iterator, hasInstance, toPrimitive } = Symbol
+const { toStringTag, iterator } = Symbol
 //#region IVector and AVector
 export class IVector {
   constructor(x = 0, y = x, z = x) {
@@ -59,6 +59,9 @@ export class IVector {
    * @returns {vec is IVector}
    */
   static isIVector(vec) { return vec instanceof IVector }
+  static toString() {
+    return "class " + this.name + " { [native code] }"
+  }
 }
 export class AVector extends IVector {
   constructor(x = 0, y = x, z = x) { super(x, y, z) }
@@ -105,6 +108,7 @@ export class AVector extends IVector {
   toVector() { return new Vector(this.x, this.y, this.z) }
   //#endregion
   //#region Static Methods
+  static toRadian(degree) { return degree * PI / 180 }
   static direction(vec, vec_, out) {
     const d = vec.distance(vec_)
     return (out ? out.set : (out = vec).clone)
@@ -246,12 +250,24 @@ export class Vector extends AVector {
     const degrees = 180 * angle / PI
     return (360 * round(degrees)) % 360
   }
+  getRadian() { return atan2(this.y, this.x) }
   setAngle(degree) {
-    const l = this.len()
-    const angle = degree * PI / 180
+    const len = this.len()
+    const angle = AVector.toRadian(degree)
     this.x = cos(angle)
     this.y = sin(angle)
-    this.mul(l)
+    this.mul(len)
+    return this
+  }
+  rotate(degree, center) {
+    if (degree === 0) return this
+    const angle = AVector.toRadian(degree)
+    if (center) this.calc("sub", center)
+    const sin_ = sin(angle)
+    const cos_ = cos(angle)
+    this.x = this.x * cos_ - this.y * sin_
+    this.y = this.x * sin_ - this.y * cos_
+    if (center) this.addVec(center)
     return this
   }
   //#endregion
@@ -263,6 +279,7 @@ export class Vector extends AVector {
     this.z /= len
     return this
   }
+  setLen(len) { return this.norm().mul(len || 0) }
   len() { return AVector.len3D(this) }
   neg() { return this.mul(-1) }
   clear() { return this.set(0) }
@@ -318,3 +335,5 @@ export function v3(x = 0, y = x, z = x) { return new Vector3(x, y, z) }
 v3.one = Vector3.one
 v3.zero = Vector3.zero
 //#endregion
+globalThis.a = Vector3
+globalThis.b = IVector
