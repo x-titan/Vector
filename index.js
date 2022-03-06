@@ -31,11 +31,6 @@ export class IVector {
       this.x + "," + this.y + "," + this.z + "]"
   }
   [toStringTag] = this.constructor.name;
-  [toPrimitive](hint) {
-    if (hint === "number") return this.x
-    if (hint === "string") return this.toString()
-    if (hint === "default") return this.toString()
-  }
   [iterator] = function* () {
     yield this.x
     yield this.y
@@ -64,7 +59,6 @@ export class IVector {
    * @returns {vec is IVector}
    */
   static isIVector(vec) { return vec instanceof IVector }
-  static [hasInstance](instance) { return this.isIVector(instance) }
 }
 export class AVector extends IVector {
   constructor(x = 0, y = x, z = x) { super(x, y, z) }
