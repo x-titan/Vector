@@ -1,7 +1,7 @@
 'use strict';
 const { seal, freeze } = Object
 const { sqrt, atan2, PI, round, cos, sin } = Math
-const isNum = n => typeof n === "number" || n instanceof Number
+const isNum = n => typeof n === "number" || n instanceof Number;
 const notImp = name => new Error("Method " + name + " is not implemented")
 const AXIS = Symbol("axis")
 const X = 0
@@ -81,7 +81,16 @@ export class AVector extends IVector {
   set(x, y, z) { throw notImp("set()") }
   addVec(vec) { throw notImp("addVec()") }
   setVec(vec) { throw notImp("setVec()") }
-  calc(operation, vec) { throw notImp("calc()") }
+  /**
+   * @param {OPERATIONS} operation
+   * @param {IVector | {x:number,y:number,z:?number}} vec
+   */
+  calc(operation, vec) {
+    if (!IVector.is2DVectorLike(vec)) return this
+    if (OPERATIONS.has(operation = operation.trim()))
+      this[operation](vec.x, vec.y, vec.z)
+    return this
+  }
   neg() { throw notImp("negative()") }
   negative() { return this.neg() }
   norm() { throw notImp("normalize()") }
@@ -99,6 +108,16 @@ export class AVector extends IVector {
       (this.y - vec.y) ** 2 +
       (this.z - vec.z) ** 2)
   }
+  getAngle() {
+    const angle = atan2(this.y, this.x)
+    const degrees = 180 * angle / PI
+    return (360 * round(degrees)) % 360
+  }
+  getRadian() { return atan2(this.y, this.x) }
+  setAngle(degree) { throw notImp("setAngle()") }
+  rotate(degree, center) { throw notImp("rotate") }
+
+  setLen(len) { throw notImp("setLen()") }
   len() { return AVector.len3D(this) }
   equals(vec) {
     return this.x === vec.x &&
@@ -175,6 +194,9 @@ export class AVector extends IVector {
 //#endregion
 
 //#region Vector
+/**
+ * @augments AVector
+ */
 export class Vector extends AVector {
   constructor(x, y, z) { super(x, y, z) }
   //#region Setter Getter
@@ -231,26 +253,11 @@ export class Vector extends AVector {
     this.z += vec.z
     return this
   }
-  /**
-   * 
-   * @param {OPERATIONS} operation 
-   * @param {IVector | {x:number,y:number,z:?number}} vec 
-   * @returns 
-   */
   calc(operation, vec) {
-    if (!IVector.is2DVectorLike(vec)) return this
-    if (OPERATIONS.has(operation = operation.trim()))
-      this[operation](vec.x, vec.y, vec.z)
-    return this
+
   }
   //#endregion
   //#region Angle
-  getAngle() {
-    const angle = atan2(this.y, this.x)
-    const degrees = 180 * angle / PI
-    return (360 * round(degrees)) % 360
-  }
-  getRadian() { return atan2(this.y, this.x) }
   setAngle(degree) {
     const len = this.len()
     const angle = AVector.toRadian(degree)
@@ -335,5 +342,3 @@ export function v3(x = 0, y = x, z = x) { return new Vector3(x, y, z) }
 v3.one = Vector3.one
 v3.zero = Vector3.zero
 //#endregion
-globalThis.a = Vector3
-globalThis.b = IVector
