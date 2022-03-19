@@ -253,9 +253,6 @@ export class Vector extends AVector {
     this.z += vec.z
     return this
   }
-  calc(operation, vec) {
-
-  }
   //#endregion
   //#region Angle
   setAngle(degree) {
