@@ -15,5 +15,6 @@
   "bugs": {
     "url": "https://github.com/x-titan/vector/issues"
   },
-  "homepage": "https://github.com/x-titan/vector#readme"
+  "homepage": "https://github.com/x-titan/vector#readme",
+  "dependencies": {}
 }
