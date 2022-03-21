@@ -276,8 +276,7 @@ export class Vector extends AVector {
   }
   //#endregion
   norm() {
-    let len = this.len()
-    if (len === 0) len = 1
+    const len = this.len() || 1
     this.x /= len
     this.y /= len
     this.z /= len
