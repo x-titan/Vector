@@ -1,15 +1,16 @@
 'use strict';
 const { seal, freeze } = Object
 const { sqrt, atan2, PI, round, cos, sin } = Math
-const isNum = n => typeof n === "number" || n instanceof Number;
-const notImp = name => new Error("Method " + name + " is not implemented")
+const isNum = n => typeof n === "number" && isFinite(n)
+const notImp = name =>
+  new Error("Method " + name + " is not implemented")
 const AXIS = Symbol("axis")
 const X = 0
 const Y = 1
 const Z = 2
 /** @type {"add"|"sub"|"mul"|"div"|"set"} */
 const OPERATIONS = new Set(["add", "sub", "mul", "div", "set"])
-const { toStringTag, iterator } = Symbol
+const { iterator } = Symbol
 //#region IVector and AVector
 export class IVector {
   constructor(x = 0, y = x, z = x) {
@@ -27,11 +28,10 @@ export class IVector {
   toJSON() { return { x: this.x, y: this.y, z: this.z } }
   toArray() { return [this.x, this.y, this.z] }
   toString() {
-    return "[" + this[toStringTag] + " " +
+    return "[" + this.constructor.name + " " +
       this.x + "," + this.y + "," + this.z + "]"
   }
-  [toStringTag] = this.constructor.name;
-  [iterator] = function* () {
+  *[iterator]() {
     yield this.x
     yield this.y
     yield this.z
@@ -64,7 +64,6 @@ export class IVector {
   }
 }
 export class AVector extends IVector {
-  constructor(x = 0, y = x, z = x) { super(x, y, z) }
   //#region Setter Getter
   get x() { return this[AXIS][X] }
   get y() { return this[AXIS][Y] }
@@ -91,9 +90,9 @@ export class AVector extends IVector {
       this[operation](vec.x, vec.y, vec.z)
     return this
   }
-  neg() { throw notImp("negative()") }
+  neg() { throw notImp("negative() or neg()") }
   negative() { return this.neg() }
-  norm() { throw notImp("normalize()") }
+  norm() { throw notImp("normalize() or norm()") }
   normalize() { return this.norm() }
   clear() { throw notImp("clear()") }
   dist(x, y, z) {
@@ -115,7 +114,7 @@ export class AVector extends IVector {
   }
   getRadian() { return atan2(this.y, this.x) }
   setAngle(degree) { throw notImp("setAngle()") }
-  rotate(degree, center) { throw notImp("rotate") }
+  rotate(degree, center) { throw notImp("rotate()") }
 
   setLen(len) { throw notImp("setLen()") }
   len() { return AVector.len3D(this) }
@@ -198,7 +197,6 @@ export class AVector extends IVector {
  * @augments AVector
  */
 export class Vector extends AVector {
-  constructor(x, y, z) { super(x, y, z) }
   //#region Setter Getter
   get x() { return this[AXIS][X] }
   get y() { return this[AXIS][Y] }
@@ -293,40 +291,38 @@ export class Vector extends AVector {
   //#endregion
 }
 export class Vector2 extends Vector {
-  constructor(x, y) { super(x, y, 0, 0) }
+  constructor(x, y) { super(x, y, 0) }
   get x() { return this[AXIS][X] }
   get y() { return this[AXIS][Y] }
   get z() { return 0 }
   set x(x) { this[AXIS][X] = x || 0 }
   set y(y) { this[AXIS][Y] = y || 0 }
   set z(z) { }
-  len() { return sqrt(this.x ** 2 + this.y ** 2) }
+  len() { return AVector.len2D(this) }
 }
 export class Vector3 extends Vector {
-  constructor(x, y) { super(x, y, 0, 0) }
   get x() { return this[AXIS][X] }
   get y() { return this[AXIS][Y] }
   get z() { return this[AXIS][Z] }
   set x(x) { this[AXIS][X] = x || 0 }
   set y(y) { this[AXIS][Y] = y || 0 }
   set z(z) { this[AXIS][Z] = z || 0 }
-  len() { return sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2) }
+  len() { return AVector.len3D(this) }
 }
 //#endregion
 
 //#region Constants
 export const VECTOR_CONSTANTS = freeze({
-  ZERO: new AVector(0, 0, 0),
-  ONE: new AVector(1, 1, 1),
-  LEFT: new AVector(-1, 0, 0),
-  RIGHT: new AVector(1, 0, 0),
-  FORWARD: new AVector(0, -1, 0),
-  BACK: new AVector(0, 1, 0),
-  TOP: new AVector(0, 0, -1),
-  BOTTOM: new AVector(0, 0, 1)
+  ZERO:     new AVector(0, 0, 0),
+  ONE:      new AVector(1, 1, 1),
+  RIGHT:    new AVector(1, 0, 0),
+  BACK:     new AVector(0, 1, 0),
+  BOTTOM:   new AVector(0, 0, 1),
+  LEFT:     new AVector(-1, 0, 0),
+  FORWARD:  new AVector(0, -1, 0),
+  TOP:      new AVector(0, 0, -1)
 })
 //#endregion
-
 //#region Export functions
 export function vec(x = 0, y = x, z = x) { return new Vector(x, y, z) }
 vec.one = Vector.one
