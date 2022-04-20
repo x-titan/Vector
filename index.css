@@ -1,0 +1,164 @@
+:root {
+  --content: 760px;
+  --container: 1440px;
+  --gutter: 1rem;
+  --radius: 0.4rem
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--gray-900);
+  color: var(--white);
+  font-family: sans-serif;
+}
+
+header {
+  height: 64px;
+  overflow: hidden;
+  justify-content: space-between;
+  margin: 0 auto;
+  background-color: var(--white);
+  color: var(--black);
+}
+
+header ul {
+  grid-gap: 1.6rem;
+  gap: 1.6rem;
+}
+
+header .container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+ol, ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  grid-gap: 0.5rem;
+  gap: 0.5rem;
+}
+
+a[href]::after {
+  bottom: 0;
+}
+
+p {
+  margin: 1rem 0;
+}
+
+nav a[href] {
+  color: inherit;
+}
+
+header img {
+  height: 42px;
+}
+
+#body {
+  height: calc(100vh - 64px);
+  overflow: auto;
+}
+
+main, article, section, footer {
+  position: relative;
+  margin-top: 4rem;
+}
+
+.container {
+  max-width: var(--container);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+  width: 100%;
+}
+
+.gutter {
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+.content {
+  max-width: var(--content);
+  width: 100%;
+}
+
+table {
+  width: 100%;
+  border: 1px solid var(--gray-100);
+  border-collapse: collapse;
+  border-radius: var(--radius);
+}
+
+.table-version {
+  width: 5rem;
+}
+
+th, td {
+  border: 1px solid var(--gray-600);
+  padding: 0.5rem;
+}
+
+h1, h2, h3 {
+  margin: 4rem 0 1rem;
+}
+
+pre {
+  background-color: var(--gray-600);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin: 1rem 0 2rem;
+  height: fit-content;
+  text-align: left;
+  display: flex;
+  overflow: auto;
+}
+
+code {
+  padding: 0;
+  text-align: left;
+  width: fit-content;
+}
+
+footer {
+  padding: 2rem 1rem 1.2rem;
+  background-color: var(--gray-700);
+}
+
+footer .container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, auto);
+  grid-gap: 1rem;
+  gap: 1rem;
+}
+
+footer a[href] {
+  color: var(--white);
+}
+
+footer p {
+  margin: 0;
+}
+
+footer h2 {
+  margin: 0;
+}
+
+.footer-hero {
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--gray-400);
+  grid-column-start: 1;
+  grid-column-end: -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

@@ -129,4 +129,3 @@ export class Matrix {
     return new Matrix(...mShape)
   }
 }
-globalThis.m = Matrix
