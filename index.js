@@ -2,26 +2,25 @@
 const { seal, freeze } = Object
 const { sqrt, atan2, PI, round, cos, sin } = Math
 const isNum = n => typeof n === "number" && isFinite(n)
-const notImp = name =>
-  new Error("Method " + name + " is not implemented")
-const AXIS = Symbol("axis")
-const X = 0
-const Y = 1
-const Z = 2
-/** @type {"add"|"sub"|"mul"|"div"|"set"} */
-const OPERATIONS = new Set(["add", "sub", "mul", "div", "set"])
+function notImp(name) {
+  throw new Error("Method " + name + " is not implemented")
+}
+const X = Symbol("AxisX")
+const Y = Symbol("AxisY")
+const Z = Symbol("AxisZ")
+/** @type {"add"|"sub"|"mul"|"div"|"pow"|"set"} */
+const OPERATIONS = new Set(["add", "sub", "mul", "div", "pow", "set"])
 const { iterator } = Symbol
 //#region IVector and AVector
 export class IVector {
   constructor(x = 0, y = x, z = x) {
-    this[AXIS] = seal([
-      x || 0,
-      y || 0,
-      z || 0])
+    this[X] = x
+    this[Y] = y
+    this[Z] = z
   }
-  get x() { return this[AXIS][X] }
-  get y() { return this[AXIS][Y] }
-  get z() { return this[AXIS][Z] }
+  get x() { return this[X] }
+  get y() { return this[Y] }
+  get z() { return this[Z] }
   /** @returns {IVector} */
   clone() { return new this.constructor(this.x, this.y, this.z) }
   copy() { return this.clone() }
@@ -65,36 +64,38 @@ export class IVector {
 }
 export class AVector extends IVector {
   //#region Setter Getter
-  get x() { return this[AXIS][X] }
-  get y() { return this[AXIS][Y] }
-  get z() { return this[AXIS][Z] }
-  set x(x) { throw notImp("set x()") }
-  set y(y) { throw notImp("set y()") }
-  set z(z) { throw notImp("set z()") }
+  get x() { return this[X] }
+  get y() { return this[Y] }
+  get z() { return this[Z] }
+  set x(x) { notImp("set x()") }
+  set y(y) { notImp("set y()") }
+  set z(z) { notImp("set z()") }
   //#endregion
   //#region Public Methods
-  add(x, y, z) { throw notImp("add()") }
-  sub(x, y, z) { throw notImp("sub()") }
-  div(x, y, z) { throw notImp("div()") }
-  mul(x, y, z) { throw notImp("mul()") }
-  set(x, y, z) { throw notImp("set()") }
-  addVec(vec) { throw notImp("addVec()") }
-  setVec(vec) { throw notImp("setVec()") }
+  add(x, y, z) { notImp("add()") }
+  sub(x, y, z) { notImp("sub()") }
+  div(x, y, z) { notImp("div()") }
+  mul(x, y, z) { notImp("mul()") }
+  pow(x, y, z) { notImp("pow()") }
+  set(x, y, z) { notImp("set()") }
+  addVec(vec) { notImp("addVec()") }
+  setVec(vec) { notImp("setVec()") }
   /**
    * @param {OPERATIONS} operation
    * @param {IVector | {x:number,y:number,z:?number}} vec
    */
   calc(operation, vec) {
     if (!IVector.is2DVectorLike(vec)) return this
-    if (OPERATIONS.has(operation = operation.trim()))
+    if (OPERATIONS.has(operation = operation
+      .toLocaleLowerCase().trim()))
       this[operation](vec.x, vec.y, vec.z)
     return this
   }
-  neg() { throw notImp("negative() or neg()") }
+  neg() { notImp("negative() or neg()") }
+  norm() { notImp("normalize() or norm()") }
+  clear() { notImp("clear()") }
   negative() { return this.neg() }
-  norm() { throw notImp("normalize() or norm()") }
   normalize() { return this.norm() }
-  clear() { throw notImp("clear()") }
   dist(x, y, z) {
     return sqrt(
       (this.x - x) ** 2 +
@@ -113,10 +114,10 @@ export class AVector extends IVector {
     return (360 * round(degrees)) % 360
   }
   getRadian() { return atan2(this.y, this.x) }
-  setAngle(degree) { throw notImp("setAngle()") }
-  rotate(degree, center) { throw notImp("rotate()") }
+  setAngle(degree) { notImp("setAngle()") }
+  rotate(degree, center) { notImp("rotate()") }
 
-  setLen(len) { throw notImp("setLen()") }
+  setLen(len) { notImp("setLen()") }
   len() { return AVector.len3D(this) }
   equals(vec) {
     return this.x === vec.x &&
@@ -198,12 +199,12 @@ export class AVector extends IVector {
  */
 export class Vector extends AVector {
   //#region Setter Getter
-  get x() { return this[AXIS][X] }
-  get y() { return this[AXIS][Y] }
-  get z() { return this[AXIS][Z] }
-  set x(x) { this[AXIS][X] = x || 0 }
-  set y(y) { this[AXIS][Y] = y || 0 }
-  set z(z) { this[AXIS][Z] = z || 0 }
+  get x() { return this[X] }
+  get y() { return this[Y] }
+  get z() { return this[Z] }
+  set x(x) { this[X] = x || 0 }
+  set y(y) { this[Y] = y || 0 }
+  set z(z) { this[Z] = z || 0 }
   //#endregion
   //#region Public Methods
   //#region Math
@@ -214,9 +215,9 @@ export class Vector extends AVector {
     return this
   }
   sub(x = 0, y = x, z = x) {
-    this.x += x
-    this.y += y
-    this.z += z
+    this.x -= x
+    this.y -= y
+    this.z -= z
     return this
   }
   div(x = 1, y = x, z = x) {
@@ -230,6 +231,11 @@ export class Vector extends AVector {
     this.y *= y
     this.z *= z
     return this
+  }
+  pow(x = 1, y = x, z = x) {
+    this.x **= x
+    this.y **= y
+    this.z **= z
   }
   set(x = 0, y = x, z = x) {
     this.x = x
@@ -292,35 +298,35 @@ export class Vector extends AVector {
 }
 export class Vector2 extends Vector {
   constructor(x, y) { super(x, y, 0) }
-  get x() { return this[AXIS][X] }
-  get y() { return this[AXIS][Y] }
+  get x() { return this[X] }
+  get y() { return this[Y] }
   get z() { return 0 }
-  set x(x) { this[AXIS][X] = x || 0 }
-  set y(y) { this[AXIS][Y] = y || 0 }
+  set x(x) { this[X] = x || 0 }
+  set y(y) { this[Y] = y || 0 }
   set z(z) { }
   len() { return AVector.len2D(this) }
 }
 export class Vector3 extends Vector {
-  get x() { return this[AXIS][X] }
-  get y() { return this[AXIS][Y] }
-  get z() { return this[AXIS][Z] }
-  set x(x) { this[AXIS][X] = x || 0 }
-  set y(y) { this[AXIS][Y] = y || 0 }
-  set z(z) { this[AXIS][Z] = z || 0 }
+  get x() { return this[X] }
+  get y() { return this[Y] }
+  get z() { return this[Z] }
+  set x(x) { this[X] = x || 0 }
+  set y(y) { this[Y] = y || 0 }
+  set z(z) { this[Z] = z || 0 }
   len() { return AVector.len3D(this) }
 }
 //#endregion
 
 //#region Constants
 export const VECTOR_CONSTANTS = freeze({
-  ZERO:     new AVector(0, 0, 0),
-  ONE:      new AVector(1, 1, 1),
-  RIGHT:    new AVector(1, 0, 0),
-  BACK:     new AVector(0, 1, 0),
-  BOTTOM:   new AVector(0, 0, 1),
-  LEFT:     new AVector(-1, 0, 0),
-  FORWARD:  new AVector(0, -1, 0),
-  TOP:      new AVector(0, 0, -1)
+  ZERO: new AVector(0, 0, 0),
+  ONE: new AVector(1, 1, 1),
+  RIGHT: new AVector(1, 0, 0),
+  BACK: new AVector(0, 1, 0),
+  BOTTOM: new AVector(0, 0, 1),
+  LEFT: new AVector(-1, 0, 0),
+  FORWARD: new AVector(0, -1, 0),
+  TOP: new AVector(0, 0, -1)
 })
 //#endregion
 //#region Export functions
