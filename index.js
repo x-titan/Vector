@@ -1,5 +1,5 @@
 'use strict';
-const { seal, freeze } = Object
+const { freeze } = Object
 const { sqrt, atan2, PI, round, cos, sin } = Math
 const isNum = n => typeof n === "number" && isFinite(n)
 function notImp(name) {
@@ -35,16 +35,14 @@ export class IVector {
     yield this.y
     yield this.z
   }
-  /**
-   * @param {*} vec
-   * @returns {vec is {x:number,y:number,z:?number}}
-   */
+  /** @return {vec is {x:number,y:number,z:?number}} */
   static is2DVectorLike(vec) {
     const t = typeof vec
     if (t === "object" || t === "function")
       return isNum(vec.x) && isNum(vec.y)
     return false
   }
+  /** @return {vec is {x:number,y:number,z:number}} */
   static is3DVectorLike(vec) {
     const t = typeof vec
     if (t === "object" || t === "function")
@@ -60,6 +58,22 @@ export class IVector {
   static isIVector(vec) { return vec instanceof IVector }
   static toString() {
     return "class " + this.name + " { [native code] }"
+  }
+  static from(value) {
+    const v = this || IVector
+    if (Array.isArray(value))
+      return new v(...value)
+    if (IVector.is3DVectorLike(value))
+      return new v(value.x, value.y, value.z)
+    if (IVector.is2DVectorLike(value))
+      return new v(value.x, value.y)
+    if (value && typeof value[Symbol.iterator] === "function") {
+      const arr = []
+      for (const prop of value)
+        arr.push(prop)
+      return v.from(arr)
+    }
+    return null
   }
 }
 export class AVector extends IVector {
