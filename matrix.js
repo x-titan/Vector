@@ -78,11 +78,15 @@ const validateLen = (a, b) => {
 
 export class Matrix {
   #shape
-  constructor(x, y, z) {
+  constructor(x, y, z, fill) {
     const args = [...arguments]
+    fill = () => null
+    if (typeof args[args.length - 1] === "function")
+      fill = args.pop()
+
     if (args.length === 0) args[0] = 1
     args.forEach(validateNumber)
-    this[MATRIX] = generate(this.#shape = args, () => null)
+    this[MATRIX] = generate(this.#shape = args, fill)
   }
   getShape() { return [...this.#shape] }
   get lenght() {
