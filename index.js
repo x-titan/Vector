@@ -347,10 +347,16 @@ export const VECTOR_CONSTANTS = freeze({
 export function vec(x = 0, y = x, z = x) { return new Vector(x, y, z) }
 vec.one = Vector.one
 vec.zero = Vector.zero
+vec.from = Vector.from
+vec.self = Vector
 export function v2(x = 0, y = x) { return new Vector2(x, y) }
 v2.one = Vector2.one
 v2.zero = Vector2.zero
+v2.from = Vector2.from
+v2.self = Vector2
 export function v3(x = 0, y = x, z = x) { return new Vector3(x, y, z) }
 v3.one = Vector3.one
 v3.zero = Vector3.zero
+v3.from = Vector3.from
+v3.self = Vector3
 //#endregion
