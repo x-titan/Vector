@@ -12,9 +12,9 @@ import "https://x-titan.github.io/vector/index.js"
 ```javascript
 import {
   IVector,  // vector interface
-  AVector, // vector abstract class
+  AVector,  // vector abstract class
   Vector,   // vector class
-  ...            // others
+  ...       // others
 } from "https://x-titan.github.io/vector/index.js"
 ```
 ```javascript
