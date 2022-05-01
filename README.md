@@ -28,7 +28,7 @@ export class Vector2 extends Vector { ... }
 
 export class Vector3 extends Vector { ... }
 
-export const VECTOR_CONSTANTS { ... }
+export const VECTOR_CONSTANTS = { ... }
 
 export function vec (x, y, z): Vector
 
