@@ -21,7 +21,7 @@ export class IVector {
   get x() { return this[X] }
   get y() { return this[Y] }
   get z() { return this[Z] }
-  /** @returns {IVector} */
+  /** @return {IVector} */
   clone() { return new this.constructor(this.x, this.y, this.z) }
   copy() { return this.clone() }
   toJSON() { return { x: this.x, y: this.y, z: this.z } }
@@ -53,7 +53,7 @@ export class IVector {
   static one() { return new this(1) }
   /**
    * @param {*} vec
-   * @returns {vec is IVector}
+   * @return {vec is IVector}
    */
   static isIVector(vec) { return vec instanceof IVector }
   static toString() {
@@ -61,18 +61,10 @@ export class IVector {
   }
   static from(value) {
     const v = this || IVector
-    if (Array.isArray(value))
+    if (Array.isArray(value) || value instanceof IVector)
       return new v(...value)
-    if (IVector.is3DVectorLike(value))
+    if (IVector.is3DVectorLike(value) || IVector.is2DVectorLike(value))
       return new v(value.x, value.y, value.z)
-    if (IVector.is2DVectorLike(value))
-      return new v(value.x, value.y)
-    if (value && typeof value[Symbol.iterator] === "function") {
-      const arr = []
-      for (const prop of value)
-        arr.push(prop)
-      return v.from(arr)
-    }
     return null
   }
 }
@@ -250,6 +242,7 @@ export class Vector extends AVector {
     this.x **= x
     this.y **= y
     this.z **= z
+    return this
   }
   set(x = 0, y = x, z = x) {
     this.x = x
@@ -293,13 +286,7 @@ export class Vector extends AVector {
     return this
   }
   //#endregion
-  norm() {
-    const len = this.len() || 1
-    this.x /= len
-    this.y /= len
-    this.z /= len
-    return this
-  }
+  norm() { return this.div(this.len() || 1) }
   setLen(len) { return this.norm().mul(len || 0) }
   len() { return AVector.len3D(this) }
   neg() { return this.mul(-1) }
@@ -360,3 +347,4 @@ v3.zero = Vector3.zero
 v3.from = Vector3.from
 v3.self = Vector3
 //#endregion
+console.log(new Vector_(1, 0, 1).len())
