@@ -330,6 +330,7 @@ export const VECTOR_CONSTANTS = freeze({
   TOP: new AVector(0, 0, -1)
 })
 //#endregion
+
 //#region Export functions
 export function vec(x = 0, y = x, z = x) { return new Vector(x, y, z) }
 vec.one = Vector.one
@@ -347,4 +348,3 @@ v3.zero = Vector3.zero
 v3.from = Vector3.from
 v3.self = Vector3
 //#endregion
-console.log(new Vector_(1, 0, 1).len())
