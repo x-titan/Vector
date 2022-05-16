@@ -1,208 +1,348 @@
 'use strict';
+
 const { freeze } = Object
-const { sqrt, atan2, PI, round, cos, sin } = Math
-const isNum = n => typeof n === "number" && isFinite(n)
-function notImp(name) {
-  throw new Error("Method " + name + " is not implemented")
-}
-const X = Symbol("AxisX")
-const Y = Symbol("AxisY")
-const Z = Symbol("AxisZ")
-/** @type {"add"|"sub"|"mul"|"div"|"pow"|"set"} */
-const OPERATIONS = new Set(["add", "sub", "mul", "div", "pow", "set"])
 const { iterator } = Symbol
+const { sqrt, atan2, PI, round, cos, sin, sign, abs } = Math
+const X = Symbol('AxisX')
+const Y = Symbol('AxisY')
+const Z = Symbol('AxisZ')
+const EXEC = new Set(['add', 'sub', 'mul', 'div', 'pow', 'set'])
+const { EPSILON } = Number
+
+const isNum = (n) => (typeof n === "number" && isFinite(n))
+const toRadian = (degree) => (degree * PI / 180)
+const is2DVectorLike = (v) => (!!v && isNum(v.x) && isNum(v.y))
+const is3DVectorLike = (v) => (is2DVectorLike(v) && isNum(v.z))
+
+function notImp(name) {
+  throw new Error(`Method ${name} is not implemented.`)
+}
+
+function isIterable(value) {
+  return value
+    && Array.isArray(value)
+    || typeof value[iterator] === "function"
+}
+
+function valid2DVector(source) {
+  if (is2DVectorLike(source)) return true
+
+  throw new TypeError('Required a like 2D or 3D Vector style object.')
+}
+
+function valid3DVector(source) {
+  if (is3DVectorLike(source)) return true
+
+  throw new TypeError('Required a like 3D Vector style object.')
+}
+
 //#region IVector and AVector
 export class IVector {
   constructor(x = 0, y = x, z = x) {
-    this[X] = x
-    this[Y] = y
-    this[Z] = z
+    this[X] = x || 0
+    this[Y] = y || 0
+    this[Z] = z || 0
   }
+
   get x() { return this[X] }
   get y() { return this[Y] }
   get z() { return this[Z] }
-  /** @return {IVector} */
-  clone() { return new this.constructor(this.x, this.y, this.z) }
+
+  /** @return {IVector | AVector | Vector | Vector2 | Vector3} */
+  clone() { return new this.constructor(...this) }
   copy() { return this.clone() }
-  toJSON() { return { x: this.x, y: this.y, z: this.z } }
-  toArray() { return [this.x, this.y, this.z] }
-  toString() {
-    return "[" + this.constructor.name + " " +
-      this.x + "," + this.y + "," + this.z + "]"
+
+  print() {
+    console.table(this)
+    return this
   }
+
+  /** @return {number[]} */
+  toArray() { return [...this] }
+  toJSON() { return { x: this.x, y: this.y, z: this.z } }
+
+  toString() {
+    return `[${this.constructor.name} ${this.x},${this.y},${this.z}]`
+  }
+
   *[iterator]() {
     yield this.x
     yield this.y
     yield this.z
   }
-  /** @return {vec is {x:number,y:number,z:?number}} */
-  static is2DVectorLike(vec) {
-    const t = typeof vec
-    if (t === "object" || t === "function")
-      return isNum(vec.x) && isNum(vec.y)
-    return false
-  }
-  /** @return {vec is {x:number,y:number,z:number}} */
-  static is3DVectorLike(vec) {
-    const t = typeof vec
-    if (t === "object" || t === "function")
-      return isNum(vec.x) && isNum(vec.y) && isNum(vec.z)
-    return false
-  }
-  static zero() { return new this(0) }
+
+  /** @return {source is IVector} */
+  static isIVector(source) { return source instanceof IVector }
   static one() { return new this(1) }
-  /**
-   * @param {*} vec
-   * @return {vec is IVector}
-   */
-  static isIVector(vec) { return vec instanceof IVector }
+  static zero() { return new this(0) }
+
   static toString() {
-    return "class " + this.name + " { [native code] }"
+    return 'class ' + this.name + ' { [native code] }'
   }
-  static from(value) {
-    const v = this || IVector
-    if (Array.isArray(value) || value instanceof IVector)
-      return new v(...value)
-    if (IVector.is3DVectorLike(value) || IVector.is2DVectorLike(value))
-      return new v(value.x, value.y, value.z)
+
+  static from(source) {
+    if (isIterable(source)) {
+      return new this(...source)
+    }
+
+    if (is2DVectorLike(source)) {
+      return new this(source.x, source.y, source.z || 0)
+    }
+
     return null
   }
 }
+
 export class AVector extends IVector {
   //#region Setter Getter
   get x() { return this[X] }
   get y() { return this[Y] }
   get z() { return this[Z] }
-  set x(x) { notImp("set x()") }
-  set y(y) { notImp("set y()") }
-  set z(z) { notImp("set z()") }
+  set x(x) { notImp('set x()') }
+  set y(y) { notImp('set y()') }
+  set z(z) { notImp('set z()') }
   //#endregion
+
   //#region Public Methods
-  add(x, y, z) { notImp("add()") }
-  sub(x, y, z) { notImp("sub()") }
-  div(x, y, z) { notImp("div()") }
-  mul(x, y, z) { notImp("mul()") }
-  pow(x, y, z) { notImp("pow()") }
-  set(x, y, z) { notImp("set()") }
-  addVec(vec) { notImp("addVec()") }
-  setVec(vec) { notImp("setVec()") }
+  add(x, y, z) { notImp('add()') }
+  sub(x, y, z) { notImp('sub()') }
+  div(x, y, z) { notImp('div()') }
+  mul(x, y, z) { notImp('mul()') }
+  pow(x, y, z) { notImp('pow()') }
+  set(x, y, z) { notImp('set()') }
+  addVec(source) { notImp('addVec()') }
+  setVec(source) { notImp('setVec()') }
+
   /**
-   * @param {OPERATIONS} operation
-   * @param {IVector | {x:number,y:number,z:?number}} vec
+   * @param {'add'|'sub'|'mul'|'div'|'pow'|'set'} exec
+   * @param {IVector | { x: number, y: number, z: ?number }} source
    */
-  calc(operation, vec) {
-    if (!IVector.is2DVectorLike(vec)) return this
-    if (OPERATIONS.has(operation = operation
-      .toLocaleLowerCase().trim()))
-      this[operation](vec.x, vec.y, vec.z)
+  calc(exec, source) {
+    valid2DVector(source)
+
+    if (EXEC.has(exec = exec.toLocaleLowerCase().trim())) {
+      this[exec](source.x, source.y, source.z || 0)
+    }
     return this
   }
-  neg() { notImp("negative() or neg()") }
-  norm() { notImp("normalize() or norm()") }
-  clear() { notImp("clear()") }
+
+  neg() { notImp('negative() or neg()') }
+  norm() { notImp('normalize() or norm()') }
+  clear() { notImp('clear()') }
   negative() { return this.neg() }
   normalize() { return this.norm() }
-  dist(x, y, z) {
+  eps() { notImp("eps") }
+
+  dist(x = 0, y = x, z = x) {
     return sqrt(
       (this.x - x) ** 2 +
       (this.y - y) ** 2 +
-      (this.z - z) ** 2)
+      (this.z - z) ** 2
+    )
   }
-  distance(vec) {
-    return sqrt(
-      (this.x - vec.x) ** 2 +
-      (this.y - vec.y) ** 2 +
-      (this.z - vec.z) ** 2)
-  }
-  getAngle() {
-    const angle = atan2(this.y, this.x)
-    const degrees = 180 * angle / PI
-    return (360 * round(degrees)) % 360
-  }
-  getRadian() { return atan2(this.y, this.x) }
-  setAngle(degree) { notImp("setAngle()") }
-  rotate(degree, center) { notImp("rotate()") }
 
-  setLen(len) { notImp("setLen()") }
+  get2Dgedree() {
+    return (360 * round(180 * this.get2DRadian() / PI)) % 360
+  }
+
+  /** @param {IVector} source */
+  distance(source) {
+    valid2DVector(source)
+
+    return this.dist(source.x, source.y, source.z || 0)
+  }
+  get2DRadian() { return atan2(this.y, this.x) }
+  set2Ddegree(degree) { notImp('setAngle()') }
+  rotate2D(degree, center) { notImp('rotate()') }
+  setLen(len) { notImp('setLen()') }
   len() { return AVector.len3D(this) }
-  equals(vec) {
-    return this.x === vec.x &&
-      this.y === vec.y &&
-      this.z === vec.z
+  toVector() { return new Vector(...this) }
+  isOK() { return is3DVectorLike(this) }
+
+  fix() {
+    if (!this.isOK()) {
+      if (!isNum(this.x)) this.x = 0
+      if (!isNum(this.y)) this.y = 0
+      if (!isNum(this.z)) this.z = 0
+    }
+    return this
   }
-  toVector() { return new Vector(this.x, this.y, this.z) }
+
+  /** @param {IVector} source */
+  same(source) {
+    valid2DVector(source)
+
+    return this.x === source.x
+      && this.y === source.y
+      && this.z === source.z
+  }
   //#endregion
+
   //#region Static Methods
-  static toRadian(degree) { return degree * PI / 180 }
-  static direction(vec, vec_, out) {
-    const d = vec.distance(vec_)
-    return (out ? out.set : (out = vec).clone)
-      .call(out,
-        vec_.x - vec.x / d,
-        vec_.y - vec.y / d,
-        vec_.z - vec.z / d)
+  /**
+   * @param {IVector} vecFrom
+   * @param {IVector} vecTo
+   */
+  static distance2D(vecFrom, vecTo) {
+    valid2DVector(vecFrom)
+    valid2DVector(vecTo)
+
+    return sqrt(
+      (vecFrom.x - vecTo.x) ** 2
+      + (vecFrom.y - vecTo.y) ** 2
+    )
   }
-  static assign(vec, vec_, out) {
-    return (out ? out.set : (out = vec).clone)
-      .call(out,
-        vec.x + vec_.x,
-        vec.y + vec_.y,
-        vec.z + vec_.z)
+
+  /**
+   * @param {IVector} vecFrom
+   * @param {IVector} vecTo
+   */
+  static distance3D(vecFrom, vecTo) {
+    valid3DVector(vecFrom)
+    valid3DVector(vecTo)
+
+    return sqrt(
+      (vecFrom.x - vecTo.x) ** 2
+      + (vecFrom.y - vecTo.y) ** 2
+      + (vecFrom.z - vecTo.z) ** 2
+    )
   }
-  /** @returns {IVector} */
-  static normalize2D(vec, out) {
-    const len = AVector.len2D(vec) || 1
-    return (out ? out.set : (out = vec).clone)
-      .call(out,
-        vec.x / len,
-        vec.y / len,
-        0)
+
+  /** @return {source is AVector} */
+  static isAVector(source) { return source instanceof AVector }
+
+  /**
+   * @param {IVector} vecFrom
+   * @param {IVector} vecTo
+   */
+  static direction2D(vecFrom, vecTo) {
+    valid2DVector(vecFrom)
+    valid2DVector(vecTo)
+
+    const d = Vector.distance2D(vecFrom, vecTo)
+    const x = (vecTo.x - vecFrom.x) / d
+    const y = (vecTo.y - vecFrom.y) / d
+    const z = 0
+
+    return new this(x, y, z)
   }
-  /** @returns {IVector} */
-  static normalize3D(vec, out) {
-    const len = AVector.len3D(vec) || 1
-    return (out ? out.set : (out = vec).clone)
-      .call(out,
-        vec.x / len,
-        vec.y / len,
-        vec.z / len)
+
+  /**
+   * @param {IVector} vecFrom
+   * @param {IVector} vecTo
+   */
+  static direction3D(vecFrom, vecTo) {
+    valid3DVector(vecFrom)
+    valid3DVector(vecTo)
+
+    const d = Vector.distance3D(vecFrom, vecTo)
+    const x = (vecTo.x - vecFrom.x) / d
+    const y = (vecTo.y - vecFrom.y) / d
+    const z = (vecTo.z - vecFrom.z) / d
+
+    return new this(x, y, z)
   }
-  static len2D(vec) {
-    return sqrt(vec.x ** 2 + vec.y ** 2)
+
+  /**
+   * @param {IVector} vec1
+   * @param {IVector} vec2
+   */
+  static assign(vec1, vec2) {
+    valid2DVector(vec1)
+    valid2DVector(vec2)
+
+    const x = (vec1.x + vec2.x)
+    const y = (vec1.y + vec2.y)
+    const z = (vec1.z + vec2.z) || 0
+
+    return new this(x, y, z)
   }
-  static len3D(vec) {
-    return sqrt(vec.x ** 2 + vec.y ** 2 + vec.z ** 2)
+
+  /**
+   * @param {IVector} source
+   * @param {IVector} [out]
+   */
+  static normalize2D(source, out) {
+    valid2DVector(source)
+
+    const len = AVector.len2D(source) || 1
+    const x = source.x / len
+    const y = source.y / len
+    const z = 0
+
+    return AVector.isAVector(out) ? out.set(x, y, z) : new this(x, y, z)
   }
-  static dot2D(vec, vec_) {
-    return vec.x * vec_.x + vec.y * vec_.y
+
+  /**
+   * @param {IVector} source
+   * @param {IVector} [out]
+   */
+  static normalize3D(source, out) {
+    valid3DVector(source)
+
+    const len = AVector.len2D(source) || 1
+    const x = source.x / len
+    const y = source.y / len
+    const z = source.z / len
+
+    return AVector.isAVector(out) ? out.set(x, y, z) : new this(x, y, z)
   }
-  static dot3D(vec, vec_) {
-    return vec.x * vec_.x + vec.y * vec_.y + vec.z * vec_.z
+
+  static len2D(source) {
+    return sqrt(source.x ** 2 + source.y ** 2)
   }
-  static cross2D(vec, vec_) {
-    return (vec.x * vec_.y) - (vec.y * vec_.x)
+
+  static len3D(source) {
+    return sqrt(source.x ** 2 + source.y ** 2 + source.z ** 2)
   }
+
+  static dot2D(vec1, vec2) {
+    valid2DVector(vec1)
+    valid2DVector(vec2)
+
+    return vec1.x * vec2.x + vec1.y * vec2.y
+  }
+
+  static dot3D(vec1, vec2) {
+    valid3DVector(vec1)
+    valid3DVector(vec2)
+
+    return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z
+  }
+
+  static cross2D(vec1, vec2) {
+    valid2DVector(vec1)
+    valid2DVector(vec2)
+
+    return (vec1.x * vec2.y) - (vec1.y * vec2.x)
+  }
+
   static cross2D_3(vec1, vec2, vec3) {
-    return (vec2.x - vec1.x) * (vec3.y - vec1.y) -
-      (vec2.y - vec1.y) * (vec3.x - vec1.x)
+    valid2DVector(vec1)
+    valid2DVector(vec2)
+    valid2DVector(vec3)
+
+    return (vec2.x - vec1.x)
+      * (vec3.y - vec1.y)
+      - (vec2.y - vec1.y)
+      * (vec3.x - vec1.x)
   }
-  static cross3DVec(vec, vec_, out) {
-    return (out ? out.set : (out = vec).clone)
-      .call(out,
-        vec_.z * vec.y - vec.z * vec_.y,
-        vec_.x * vec.z - vec.x * vec_.z,
-        vec_.y * vec.x - vec.y * vec_.x)
+
+  static cross3DVec(vec1, vec2) {
+    valid3DVector(vec1)
+    valid3DVector(vec2)
+
+    const x = vec2.z * vec1.y - vec1.z * vec2.y
+    const y = vec2.x * vec1.z - vec1.x * vec2.z
+    const z = vec2.y * vec1.x - vec1.y * vec2.x
+
+    return new this(x, y, z)
   }
-  /** @returns {vec is AVector} */
-  static isAVector(vec) { return vec instanceof AVector }
-  //#endregion
+  // #endregion
 }
 //#endregion
 
 //#region Vector
-/**
- * @augments AVector
- */
 export class Vector extends AVector {
   //#region Setter Getter
   get x() { return this[X] }
@@ -212,7 +352,9 @@ export class Vector extends AVector {
   set y(y) { this[Y] = y || 0 }
   set z(z) { this[Z] = z || 0 }
   //#endregion
+
   //#region Public Methods
+
   //#region Math
   add(x = 0, y = x, z = x) {
     this.x += x
@@ -220,30 +362,35 @@ export class Vector extends AVector {
     this.z += z
     return this
   }
+
   sub(x = 0, y = x, z = x) {
     this.x -= x
     this.y -= y
     this.z -= z
     return this
   }
+
   div(x = 1, y = x, z = x) {
     this.x /= x
     this.y /= y
     this.z /= z
     return this
   }
+
   mul(x = 1, y = x, z = x) {
     this.x *= x
     this.y *= y
     this.z *= z
     return this
   }
+
   pow(x = 1, y = x, z = x) {
     this.x **= x
     this.y **= y
     this.z **= z
     return this
   }
+
   set(x = 0, y = x, z = x) {
     this.x = x
     this.y = y
@@ -251,52 +398,88 @@ export class Vector extends AVector {
     return this
   }
   //#endregion
-  //#region Math with Vec
-  setVec(vec) {
-    this.x = vec.x
-    this.y = vec.y
-    this.z = vec.z
+
+  //#region Math with Vector
+  /** @param {IVector} source */
+  setVec(source) {
+    this.x = source.x
+    this.y = source.y
+    this.z = source.z
     return this
   }
-  addVec(vec) {
-    this.x += vec.x
-    this.y += vec.y
-    this.z += vec.z
+
+  /** @param {IVector} source */
+  addVec(source) {
+    this.x += source.x
+    this.y += source.y
+    this.z += source.z
     return this
   }
   //#endregion
+
   //#region Angle
-  setAngle(degree) {
-    const len = this.len()
-    const angle = AVector.toRadian(degree)
-    this.x = cos(angle)
-    this.y = sin(angle)
-    this.mul(len)
+  set2Ddegree(degree) {
+    if (degree === 0 || degree === 360) return this
+
+    const len = AVector.len2D(this)
+    const radian = toRadian(degree)
+
+    this.x = cos(radian) * len
+    this.y = sin(radian) * len
+
     return this
   }
-  rotate(degree, center) {
-    if (degree === 0) return this
-    const angle = AVector.toRadian(degree)
-    if (center) this.calc("sub", center)
-    const sin_ = sin(angle)
-    const cos_ = cos(angle)
-    this.x = this.x * cos_ - this.y * sin_
-    this.y = this.x * sin_ - this.y * cos_
-    if (center) this.addVec(center)
+
+  /**
+   * @param {number} degree
+   * @param {IVector} center
+   */
+  rotate2D(degree, center) {
+    if (degree === 0 || degree === 360) return this
+
+    if (is2DVectorLike(center)) this.calc("sub", center)
+
+    const radian = toRadian(degree)
+    const sin_ = sin(radian)
+    const cos_ = cos(radian)
+    const x = this.x * cos_ - this.y * sin_
+    const y = this.x * sin_ + this.y * cos_
+    this.x = x
+    this.y = y
+
+    if (is2DVectorLike(center)) this.addVec(center)
+
     return this
   }
   //#endregion
-  norm() { return this.div(this.len() || 1) }
+
+
+  /** @param {number} len */
   setLen(len) { return this.norm().mul(len || 0) }
+  norm() { return this.div(this.len() || 1) }
   len() { return AVector.len3D(this) }
   neg() { return this.mul(-1) }
   clear() { return this.set(0) }
+  abs() { return this.set(abs(this.x), abs(this.y), abs(this.z)) }
+
+  //! fix it
+  eps() {
+    let x = abs(this.x)
+    let y = abs(this.y)
+    let z = abs(this.z)
+    if (EPSILON > (x % 1)) x = x - (x % 1)
+    if (EPSILON > (y % 1)) y = y - (y % 1)
+    if (EPSILON > (z % 1)) z = z - (z % 1)
+    this.x = x * sign(this.x)
+    this.y = y * sign(this.y)
+    this.z = z * sign(this.z)
+  }
   //#endregion
-  //#region Static Methods
-  /** @returns {vec is Vector} */
-  static isVector(vec) { return vec instanceof Vector }
-  //#endregion
+
+  /** @return {source is Vector} */
+  static isVector(source) { return source instanceof Vector }
 }
+
 export class Vector2 extends Vector {
   constructor(x, y) { super(x, y, 0) }
   get x() { return this[X] }
@@ -307,6 +490,7 @@ export class Vector2 extends Vector {
   set z(z) { }
   len() { return AVector.len2D(this) }
 }
+
 export class Vector3 extends Vector {
   get x() { return this[X] }
   get y() { return this[Y] }
@@ -319,8 +503,10 @@ export class Vector3 extends Vector {
 //#endregion
 
 //#region Constants
+const ZERO = new AVector(0, 0, 0)
+
 export const VECTOR_CONSTANTS = freeze({
-  ZERO: new AVector(0, 0, 0),
+  ZERO,
   ONE: new AVector(1, 1, 1),
   RIGHT: new AVector(1, 0, 0),
   BACK: new AVector(0, 1, 0),
@@ -333,16 +519,21 @@ export const VECTOR_CONSTANTS = freeze({
 
 //#region Export functions
 export function vec(x = 0, y = x, z = x) { return new Vector(x, y, z) }
+
 vec.one = Vector.one
 vec.zero = Vector.zero
 vec.from = Vector.from
 vec.self = Vector
+
 export function v2(x = 0, y = x) { return new Vector2(x, y) }
+
 v2.one = Vector2.one
 v2.zero = Vector2.zero
 v2.from = Vector2.from
 v2.self = Vector2
+
 export function v3(x = 0, y = x, z = x) { return new Vector3(x, y, z) }
+
 v3.one = Vector3.one
 v3.zero = Vector3.zero
 v3.from = Vector3.from
